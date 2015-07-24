@@ -1,0 +1,88 @@
+<!--<fragment xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"-->
+<!--android:layout_height="match_parent" android:id="@+id/map" tools:context=".MapsActivity"-->
+<!--android:name="com.google.android.gms.maps.SupportMapFragment" />-->
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MapsActivity" >
+
+        <fragment
+            android:id="@+id/map"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:scrollbars="vertical"
+            class="com.google.android.gms.maps.SupportMapFragment"/>
+
+        <Button
+            android:id="@+id/clearButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="3dp"
+            android:text="@string/button_clear"
+            android:background="#b0ffffff"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="10dp"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:padding="5dp"
+            android:onClick="clearMap"
+            />
+
+        <Button
+            android:id="@+id/graphSAButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="3dp"
+            android:text="@string/button_SA"
+            android:textSize="6sp"
+            android:background="#b0ffffff"
+            android:layout_alignLeft="@+id/clearButton"
+            android:layout_below="@+id/clearButton"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:padding="5dp"
+            android:onClick="TSP_SA"
+            />
+
+        <Button
+            android:id="@+id/graphGAButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="3dp"
+            android:text="@string/button_GA"
+            android:textSize="6sp"
+            android:background="#b0ffffff"
+            android:layout_alignLeft="@+id/clearButton"
+            android:layout_below="@+id/graphSAButton"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:padding="5dp"
+            android:onClick="TSP_GA"
+            />
+
+        <Button
+            android:id="@+id/graphTAButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="3dp"
+            android:text="@string/button_TA"
+            android:textSize="6sp"
+            android:background="#b0ffffff"
+            android:layout_alignLeft="@+id/clearButton"
+            android:layout_below="@+id/graphGAButton"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:padding="5dp"
+            android:onClick="TSP_TA"
+            />
+    </RelativeLayout>
+
+</FrameLayout>
