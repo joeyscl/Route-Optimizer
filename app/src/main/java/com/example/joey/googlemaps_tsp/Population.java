@@ -14,7 +14,7 @@ public class Population {
         // If we need to initialise a population of tours do so
         if (initialise) {
             // Loop and create individuals
-            for (int i = 0; i < populationSize(); i++) {
+            for (int i = 0; i < populationSize; i++) {
                 Tour newTour = new Tour();
                 newTour.generateIndividual();
                 saveTour(i, newTour);

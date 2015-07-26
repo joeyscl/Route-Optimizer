@@ -42,7 +42,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="3dp"
             android:text="@string/button_SA"
-            android:textSize="6sp"
+            android:textSize="8sp"
             android:background="#b0ffffff"
             android:layout_alignLeft="@+id/clearButton"
             android:layout_below="@+id/clearButton"
@@ -58,7 +58,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="3dp"
             android:text="@string/button_GA"
-            android:textSize="6sp"
+            android:textSize="8sp"
             android:background="#b0ffffff"
             android:layout_alignLeft="@+id/clearButton"
             android:layout_below="@+id/graphSAButton"
@@ -68,21 +68,21 @@
             android:onClick="TSP_GA"
             />
 
-        <Button
-            android:id="@+id/graphTAButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="3dp"
-            android:text="@string/button_TA"
-            android:textSize="6sp"
-            android:background="#b0ffffff"
-            android:layout_alignLeft="@+id/clearButton"
-            android:layout_below="@+id/graphGAButton"
-            android:minHeight="0dp"
-            android:minWidth="0dp"
-            android:padding="5dp"
-            android:onClick="TSP_TA"
-            />
+        <!--<Button-->
+            <!--android:id="@+id/graphTAButton"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_marginBottom="3dp"-->
+            <!--android:text="@string/button_TA"-->
+            <!--android:textSize="8sp"-->
+            <!--android:background="#b0ffffff"-->
+            <!--android:layout_alignLeft="@+id/clearButton"-->
+            <!--android:layout_below="@+id/graphGAButton"-->
+            <!--android:minHeight="0dp"-->
+            <!--android:minWidth="0dp"-->
+            <!--android:padding="5dp"-->
+            <!--android:onClick="TSP_TA"-->
+            <!--/>-->
     </RelativeLayout>
 
 </FrameLayout>

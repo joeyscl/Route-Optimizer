@@ -80,8 +80,7 @@ public class MapsActivity extends FragmentActivity {
             @Override
             public void onMapClick(LatLng latLng) {
 
-                if (TourManager.numberOfDestinations() == 10) {
-                    // ADD ALERT DIALOG
+                if (TourManager.numberOfDestinations() >= 12) {
                     return;
                 }
                 // Creating a marker
@@ -144,74 +143,152 @@ public class MapsActivity extends FragmentActivity {
     }
 
     public void TSP_SA(View view) {
-        Tour bestTour = TSP_SA.simulate();
-        if (bestTour == null) return;
-        graphMap(bestTour);
+        SA_Task task = new SA_Task();
+        task.execute();
     }
 
     public void TSP_GA(View view) {
-        Tour bestTour = TSP_GA.simulate();
-        if (bestTour == null) return;
-        graphMap(bestTour);
-    }
-
-    public void TSP_TA(View view) {
-//        Tour bestTour = TSP_TA.simulate();
-//        if (bestTour == null) return;
-//        graphMap(bestTour);
-
         GA_Task task = new GA_Task();
         task.execute();
     }
 
-    // solves and displays TSP using GA
-    class GA_Task extends AsyncTask<Void, Void, Void> {
+    public void TSP_TA(View view) {
+        SA_Task task = new SA_Task();
+        task.execute();
+    }
 
-        private volatile Population pop;
+    // solves and displays TSP using GA
+    class GA_Task extends AsyncTask<Void, Tour, Population> {
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
             MapsActivity.this.setProgressBarIndeterminateVisibility(true);
-            pop = new Population(50, true);
         }
 
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected Population doInBackground(Void... voids) {
+
+            // Initialization
+            Population pop = new Population(50, true);
+            Tour fittest = pop.getFittest();
+            publishProgress(fittest);
+
             long time = System.currentTimeMillis();
             long lastPublishTime = time;
 
             for (int i = 0; i < 200; i++) {
                 time = System.currentTimeMillis();
-//                pop = GA.evolvePopulation(pop);
+                pop = GA.evolvePopulation(pop);
+                if (time - lastPublishTime > 200) {
+                    lastPublishTime = time;
+                    publishProgress(pop.getFittest());
+                }
+
+//              // Uncomment if using an emulator to "slow things down"
+//                try {
+//                    Thread.sleep(2);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+            }
+            return pop;
+        }
+
+        @Override
+        protected void onPostExecute(Population pop) {
+            super.onPostExecute(pop);
+            Tour fittest = pop.getFittest();
+            graphMap(fittest);
+            System.out.println("GA Final distance: " + pop.getFittest().getDistance());
+            MapsActivity.this.setProgressBarIndeterminateVisibility(false);
+        }
+
+        @Override
+        protected void onProgressUpdate(Tour... tours) {
+            super.onProgressUpdate(tours[0]);
+            Tour currentBest = tours[0];
+            graphMap(currentBest);
+            System.out.println("Current distance: " + currentBest.getDistance());
+        }
+    }
+
+    // solves and displays TSP using SA
+    class SA_Task extends AsyncTask<Void, Void, Void> {
+
+        volatile Tour current;
+        volatile Tour best;
+        double temp = 200000000;
+        double coolingRate = 0.0025;
+
+        long time = System.currentTimeMillis();
+        long lastPublishTime = time;
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            // Initialization
+            current = new Tour();
+            current.generateIndividual();
+            System.out.println("Initial distance: " + current.getDistance());
+            best = new Tour(current);
+            publishProgress(); // Initial graph
+
+            while (temp > 1) {
+
+                long time = System.currentTimeMillis();
+
+                Tour newSolution = new Tour(current);
+                newSolution.mutateIndividual();
+
+                double currentEnergy = current.getDistance();
+                double neighbourEnergy = newSolution.getDistance();
+
+                // Decide if we should accept the neighbour
+                if (TSP_SA.acceptanceProbability(currentEnergy, neighbourEnergy, temp) > Math.random()) {
+                    current = new Tour(newSolution);
+                }
+
+                // Keep track of the best solution found
+                if (current.getDistance() < best.getDistance()) {
+                    best = current;
+                }
+
                 if (time - lastPublishTime > 200) {
                     lastPublishTime = time;
                     publishProgress();
                 }
 
-                try {
-                    Thread.sleep(20);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+//              // Uncomment if using an emulator to "slow things down"
+//                try {
+//                    Thread.sleep(0,10);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+                temp *= 1 - coolingRate;
             }
             return null;
         }
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            MapsActivity.this.setProgressBarIndeterminateVisibility(true);
+        }
+
+        @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            graphMap(pop.getFittest());
-            System.out.println("GA Final distance: " + pop.getFittest().getDistance());
+            graphMap(best);
+            System.out.println("SA Final distance: " + best.getDistance());
             MapsActivity.this.setProgressBarIndeterminateVisibility(false);
         }
 
         @Override
         protected void onProgressUpdate(Void... values) {
             super.onProgressUpdate(values);
-            int num = (int) (Math.random() * pop.populationSize());
-            graphMap(pop.getTour(num));
-            System.out.println("Current distance: " + pop.getFittest().getDistance());
+            System.out.println("Current distance: " + best.getDistance());
+            graphMap(best);
         }
     }
 }

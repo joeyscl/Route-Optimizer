@@ -2,7 +2,9 @@ package com.example.joey.googlemaps_tsp;
 
 import android.location.Location;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 /**
  * Created by Joey on 2015-07-12.
@@ -10,18 +12,20 @@ import com.google.android.gms.maps.model.Marker;
 public class Destination {
 
     private Marker marker;
+    private LatLng pos;
 
     public Destination(Marker marker) {
         this.marker = marker;
+        this.pos = marker.getPosition();
     }
 
 
     public double distanceTo(Destination destination) {
 
-        double lat1 = Math.toRadians(this.marker.getPosition().latitude);
-        double lng1 = Math.toRadians(this.marker.getPosition().longitude);
-        double lat2 = Math.toRadians(destination.marker.getPosition().longitude);
-        double lng2 = Math.toRadians(destination.marker.getPosition().longitude);
+        double lat1 = Math.toRadians(this.pos.latitude);
+        double lng1 = Math.toRadians(this.pos.longitude);
+        double lat2 = Math.toRadians(destination.getLatLng().latitude);
+        double lng2 = Math.toRadians(destination.getLatLng().longitude);
 
         Location loc1 = new Location("loc1");
         loc1.setLatitude(lat1);
@@ -45,13 +49,12 @@ public class Destination {
         return marker;
     }
 
-    public void setMarker(Marker marker) {
-        this.marker = marker;
-    }
+    public LatLng getLatLng() { return pos; }
 
     @Override
     public String toString(){
         return String.valueOf(marker.getPosition().latitude) + ", " + String.valueOf(marker.getPosition().longitude);
     }
+
 
 }

@@ -18,6 +18,8 @@ public class TSP_SA {
         return Math.exp((energy - newEnergy) / temperature);
     }
 
+
+    // NOT USED
     public static Tour simulate() {
 
         if (TourManager.numberOfDestinations() == 0) return null;
@@ -35,8 +37,6 @@ public class TSP_SA {
         Tour best = new Tour(currentSolution);
 
         while (temp > 1) {
-//            Tour newSolution = new Tour();
-//            newSolution.generateIndividual();
 
             Tour newSolution = new Tour(currentSolution);
             newSolution.mutateIndividual();
@@ -56,7 +56,7 @@ public class TSP_SA {
             temp *= 1 - coolingRate;
         }
         System.out.println("SA Final distance: " + best.getDistance());
-        System.out.println(best);
+//        System.out.println(best);
 
         return best;
     }

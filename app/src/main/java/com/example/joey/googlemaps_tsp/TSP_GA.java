@@ -5,6 +5,8 @@ package com.example.joey.googlemaps_tsp;
  */
 public class TSP_GA {
 
+
+    // NOT USED
     public static Tour simulate() {
 
         // Initialize population
@@ -20,7 +22,6 @@ public class TSP_GA {
         // Print final results
         Tour best = pop.getFittest();
         System.out.println("GA Final distance: " + pop.getFittest().getDistance());
-//        System.out.println("Solution:");
 //        System.out.println(best);
 
         return best;
