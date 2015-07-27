@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">GoogleMaps_TSP</string>
-    <string name="title_activity_maps">GoogleMaps_TSP</string>
+    <string name="app_name">GMaps_TSP</string>
+    <string name="title_activity_maps">GMaps_TSP</string>
     <string name="button_clear">clear</string>
     <string name="button_SA">Simulated\nAnnealing</string>
     <string name="button_GA">Genetic\nAlgorithm</string>

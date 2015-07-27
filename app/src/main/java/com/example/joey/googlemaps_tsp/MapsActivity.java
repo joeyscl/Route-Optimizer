@@ -1,10 +1,14 @@
 package com.example.joey.googlemaps_tsp;
 
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -18,6 +22,7 @@ import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity {
 
+    private Boolean EMULATOR;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private ArrayList<Polyline> polylines = new ArrayList();
 //    private TourRenderer tourRenderer = new TourRenderer(this, destinations);
@@ -29,7 +34,15 @@ public class MapsActivity extends FragmentActivity {
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         mMap.setMyLocationEnabled(false);
 
-//        tourRenderer = (TourRenderer) findViewById(R.id.tourRendererOverlay);
+        ApplicationInfo ai = null;
+        try {
+            ai = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);
+            Bundle bundle = ai.metaData;
+            EMULATOR = bundle.getBoolean("emulator", false);
+
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     protected void onResume() {
@@ -153,8 +166,6 @@ public class MapsActivity extends FragmentActivity {
     }
 
     public void TSP_TA(View view) {
-        SA_Task task = new SA_Task();
-        task.execute();
     }
 
     // solves and displays TSP using GA
@@ -164,6 +175,10 @@ public class MapsActivity extends FragmentActivity {
         protected void onPreExecute() {
             super.onPreExecute();
             MapsActivity.this.setProgressBarIndeterminateVisibility(true);
+
+            //change color of button to indicate processing
+            Button GA_button = (Button) findViewById(R.id.graphGAButton);
+            GA_button.setBackgroundColor(0xb0FF9933);
         }
 
         @Override
@@ -185,12 +200,13 @@ public class MapsActivity extends FragmentActivity {
                     publishProgress(pop.getFittest());
                 }
 
-//              // Uncomment if using an emulator to "slow things down"
-//                try {
-//                    Thread.sleep(2);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
+                if (EMULATOR) {
+                    try {
+                        Thread.sleep(2);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
             return pop;
         }
@@ -201,6 +217,15 @@ public class MapsActivity extends FragmentActivity {
             Tour fittest = pop.getFittest();
             graphMap(fittest);
             System.out.println("GA Final distance: " + pop.getFittest().getDistance());
+
+            TextView tv1 = (TextView) findViewById(R.id.final_distance);
+            double finalDistance = Math.round(pop.getFittest().getDistance());
+            tv1.setText("FINAL DISTANCE: " + finalDistance + " km");
+
+            //change color of button to indicate finish
+            Button GA_button = (Button) findViewById(R.id.graphGAButton);
+            GA_button.setBackgroundColor(0xb0ffffff);
+
             MapsActivity.this.setProgressBarIndeterminateVisibility(false);
         }
 
@@ -218,11 +243,21 @@ public class MapsActivity extends FragmentActivity {
 
         volatile Tour current;
         volatile Tour best;
-        double temp = 200000000;
-        double coolingRate = 0.0025;
+        double temp = 100000000;
+        double coolingRate = 0.002;
 
         long time = System.currentTimeMillis();
         long lastPublishTime = time;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            MapsActivity.this.setProgressBarIndeterminateVisibility(true);
+
+            //change color of button to indicate processing
+            Button GA_button = (Button) findViewById(R.id.graphSAButton);
+            GA_button.setBackgroundColor(0xb0FF9933);
+        }
 
         @Override
         protected Void doInBackground(Void... voids) {
@@ -259,21 +294,17 @@ public class MapsActivity extends FragmentActivity {
                     publishProgress();
                 }
 
-//              // Uncomment if using an emulator to "slow things down"
-//                try {
-//                    Thread.sleep(0,10);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
+                if (EMULATOR) {
+                    try {
+                        Thread.sleep(0, 5);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
                 temp *= 1 - coolingRate;
             }
             return null;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            MapsActivity.this.setProgressBarIndeterminateVisibility(true);
         }
 
         @Override
@@ -281,6 +312,15 @@ public class MapsActivity extends FragmentActivity {
             super.onPostExecute(aVoid);
             graphMap(best);
             System.out.println("SA Final distance: " + best.getDistance());
+
+            TextView tv1 = (TextView) findViewById(R.id.final_distance);
+            int finalDistance = (int) best.getDistance();
+            tv1.setText("FINAL DISTANCE: " + finalDistance + " km");
+
+            //change color of button to indicate finish
+            Button GA_button = (Button) findViewById(R.id.graphSAButton);
+            GA_button.setBackgroundColor(0xb0ffffff);
+
             MapsActivity.this.setProgressBarIndeterminateVisibility(false);
         }
 

@@ -83,6 +83,20 @@
             <!--android:padding="5dp"-->
             <!--android:onClick="TSP_TA"-->
             <!--/>-->
+
+        <TextView
+            android:id="@+id/final_distance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="10dp"
+            android:layout_centerHorizontal="true"
+            android:textSize="14sp"
+            android:textColor="@android:color/black"
+            android:textColorHighlight="#000000"
+            android:text="FINAL DISTANCE"
+            />
+
     </RelativeLayout>
 
 </FrameLayout>
