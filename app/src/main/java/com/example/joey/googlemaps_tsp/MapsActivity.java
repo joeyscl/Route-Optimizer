@@ -6,9 +6,14 @@ import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.widget.DrawerLayout;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -25,15 +30,23 @@ public class MapsActivity extends FragmentActivity {
     private Boolean EMULATOR;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private ArrayList<Polyline> polylines = new ArrayList();
-//    private TourRenderer tourRenderer = new TourRenderer(this, destinations);
+
+    // initialize drawer
+    private String[] mOptionsNames;
+    private ListView mDrawerList;
+    private DrawerLayout mDrawerLayout;
+    private ArrayAdapter<String> mAdapter;
 
     protected void onCreate(Bundle savedInstanceState) {
+
+        // Setup map on current location
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
-        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         mMap.setMyLocationEnabled(false);
 
+        // Adjust application behaviour based on emulator or device (see "emulator" in manifest)
         ApplicationInfo ai = null;
         try {
             ai = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);
@@ -43,6 +56,25 @@ public class MapsActivity extends FragmentActivity {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
+
+        // Setup drawer
+        mDrawerList = (ListView)findViewById(R.id.left_drawer);
+        mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        addDrawerItems();
+    }
+
+    //Helper Method
+    private void addDrawerItems() {
+        mOptionsNames = getResources().getStringArray(R.array.optionsNames);
+        mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mOptionsNames);
+        mDrawerList.setAdapter(mAdapter);
+
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(MapsActivity.this, "TOAST", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     protected void onResume() {
@@ -219,7 +251,7 @@ public class MapsActivity extends FragmentActivity {
             System.out.println("GA Final distance: " + pop.getFittest().getDistance());
 
             TextView tv1 = (TextView) findViewById(R.id.final_distance);
-            double finalDistance = Math.round(pop.getFittest().getDistance());
+            int finalDistance = (int) pop.getFittest().getDistance();
             tv1.setText("FINAL DISTANCE: " + finalDistance + " km");
 
             //change color of button to indicate finish

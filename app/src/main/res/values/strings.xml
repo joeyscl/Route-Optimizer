@@ -7,5 +7,17 @@
     <string name="button_SA">Simulated\nAnnealing</string>
     <string name="button_GA">Genetic\nAlgorithm</string>
     <string name="button_TA">Test\nAlgorithm</string>
+    <string name="final_distance">FINAL DISTANCE</string>
+
+    <string-array name="optionsNames">
+        <item>Simulated Annealing</item>
+        <item>Temperature</item>
+        <item>Cooling Rate</item>
+        <item>Genetic Algorithm</item>
+        <item>Population</item>
+        <item>Tournament Size</item>
+        <item>Mutation Rate</item>
+        <item>CrossOver Rate</item>
+    </string-array>
 
 </resources>

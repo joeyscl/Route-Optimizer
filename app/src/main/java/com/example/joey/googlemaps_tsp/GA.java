@@ -7,7 +7,7 @@ public class GA {
 
     /* GA parameters */
     private static final double mutationRate = 0.03;
-    private static final double crossoverRate = 0.5;
+    private static final double crossoverRate = 1;
     private static final int tournamentSize = 5;
     private static final boolean elitism = true;
 
@@ -29,8 +29,15 @@ public class GA {
             // Select parents
             Tour parent1 = tournamentSelection(pop);
             Tour parent2 = tournamentSelection(pop);
-            // Crossover parents
-            Tour child = crossover(parent1, parent2);
+
+            Tour child;
+            if (Math.random() <= crossoverRate) {
+                // Crossover parents
+                child = crossover(parent1, parent2);
+            } else {
+                child = parent1;
+            }
+
             // Add child to new population
             newPopulation.saveTour(i, child);
         }
