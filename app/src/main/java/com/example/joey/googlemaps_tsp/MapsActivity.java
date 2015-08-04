@@ -1,20 +1,30 @@
 package com.example.joey.googlemaps_tsp;
 
+
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -31,20 +41,40 @@ public class MapsActivity extends FragmentActivity {
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private ArrayList<Polyline> polylines = new ArrayList();
 
-    // initialize drawer
-    private String[] mOptionsNames;
+    // initialize options drawer
+    private SharedPreferences mSharedPreferences;
     private ListView mDrawerList;
     private DrawerLayout mDrawerLayout;
     private ArrayAdapter<String> mAdapter;
 
     protected void onCreate(Bundle savedInstanceState) {
 
-        // Setup map on current location
+        // Setup map
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        mMap.setMyLocationEnabled(false);
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mMap.setMyLocationEnabled(true);
+
+        // Zoom to Current Location
+        // Get LocationManager object from System Service LOCATION_SERVICE
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();                                     // Create a criteria object to retrieve provider
+        String provider = locationManager.getBestProvider(criteria, true);      // Get the name of the best provider
+        Location myLocation = locationManager.getLastKnownLocation(provider);   // Get Current Location
+        double latitude = myLocation.getLatitude();                             // Get latitude of the current location
+        double longitude = myLocation.getLongitude();                           // Get longitude of the current location
+        LatLng latLng = new LatLng(latitude, longitude);                        // Create a LatLng object for the current location
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));                 // Show the current location in Google Map
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));                     // Zoom in the Google Map
+
+        // Setup options & drawer
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        mDrawerList = (ListView) findViewById(R.id.left_drawer);
+        addDrawerItems(R.array.menuItems, mDrawerList);
+        mDrawerList.setOnItemClickListener(new SideDrawerClickListener());
 
         // Adjust application behaviour based on emulator or device (see "emulator" in manifest)
         ApplicationInfo ai = null;
@@ -56,25 +86,54 @@ public class MapsActivity extends FragmentActivity {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-
-        // Setup drawer
-        mDrawerList = (ListView)findViewById(R.id.left_drawer);
-        mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
-        addDrawerItems();
     }
 
     //Helper Method
-    private void addDrawerItems() {
-        mOptionsNames = getResources().getStringArray(R.array.optionsNames);
+    private void addDrawerItems(int listArr, ListView view ) {
+        String[] mOptionsNames;
+        mOptionsNames = getResources().getStringArray(listArr);
         mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mOptionsNames);
-        mDrawerList.setAdapter(mAdapter);
+        view.setAdapter(mAdapter);
+    }
 
-        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(MapsActivity.this, "TOAST", Toast.LENGTH_SHORT).show();
-            }
-        });
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+    }
+
+    private class SideDrawerClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView parent, View view, int position, long id) {
+            selectItem(position);
+        }
+    }
+
+    //** Swaps fragments in the main content view */
+    private void selectItem(int position) {
+        switch (position) {
+            case 0:
+                // Contact Info
+
+                break;
+            case 1:
+                // What is SA
+
+                break;
+            case 2:
+                // What is GA
+
+                break;
+            case 3:
+                // Options
+                Intent myIntent = new Intent(this, SettingsActivity.class);
+                startActivity(myIntent);
+                break;
+        }
     }
 
     protected void onResume() {
@@ -117,10 +176,8 @@ public class MapsActivity extends FragmentActivity {
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
-        //mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
 
         // Setting a click event handler for the map
-
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -188,16 +245,15 @@ public class MapsActivity extends FragmentActivity {
     }
 
     public void TSP_SA(View view) {
+        if (TourManager.numberOfDestinations()==0) return;
         SA_Task task = new SA_Task();
         task.execute();
     }
 
     public void TSP_GA(View view) {
+        if (TourManager.numberOfDestinations()==0) return;
         GA_Task task = new GA_Task();
         task.execute();
-    }
-
-    public void TSP_TA(View view) {
     }
 
     // solves and displays TSP using GA
@@ -217,17 +273,20 @@ public class MapsActivity extends FragmentActivity {
         protected Population doInBackground(Void... voids) {
 
             // Initialization
-            Population pop = new Population(50, true);
+            int popSize = Integer.parseInt(mSharedPreferences.getString("popSize", "50"));
+            int generations = Integer.parseInt(mSharedPreferences.getString("generations", "200"));
+
+            Population pop = new Population(popSize, true);
             Tour fittest = pop.getFittest();
             publishProgress(fittest);
 
             long time = System.currentTimeMillis();
             long lastPublishTime = time;
 
-            for (int i = 0; i < 200; i++) {
+            for (int i = 0; i < generations; i++) {
                 time = System.currentTimeMillis();
-                pop = GA.evolvePopulation(pop);
-                if (time - lastPublishTime > 200) {
+                pop = GA.evolvePopulation(pop, mSharedPreferences);
+                if (time - lastPublishTime > generations) {
                     lastPublishTime = time;
                     publishProgress(pop.getFittest());
                 }
@@ -275,8 +334,8 @@ public class MapsActivity extends FragmentActivity {
 
         volatile Tour current;
         volatile Tour best;
-        double temp = 100000000;
-        double coolingRate = 0.002;
+        double temp = Double.parseDouble(mSharedPreferences.getString("temperature", "1000000000"));
+        double coolingRate = Double.parseDouble(mSharedPreferences.getString("coolingRate", "0.025f"));
 
         long time = System.currentTimeMillis();
         long lastPublishTime = time;

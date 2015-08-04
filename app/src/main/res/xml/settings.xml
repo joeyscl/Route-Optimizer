@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:entries="@array/temperature"
+        android:entryValues="@array/temperatureValues"
+        android:key="temperature"
+        android:defaultValue="1000000"
+        android:summary="SA: Initial temperature"
+        android:title="Temperature"/>
+
+    <ListPreference
+        android:entries="@array/coolingRate"
+        android:entryValues="@array/coolingRateValues"
+        android:key="coolingRate"
+        android:defaultValue="0.001"
+        android:summary="SA: Rate of cooling of system"
+        android:title="Cooling Rate"/>
+
+    <ListPreference
+        android:entries="@array/generations"
+        android:entryValues="@array/generations"
+        android:key="generations"
+        android:defaultValue="200"
+        android:summary="GA: Number of generations of evolution"
+        android:title="Generations"/>
+
+    <ListPreference
+        android:entries="@array/popSize"
+        android:entryValues="@array/popSize"
+        android:key="popSize"
+        android:defaultValue="50"
+        android:summary="GA: Population size"
+        android:title="Population Size"/>
+
+    <ListPreference
+        android:entries="@array/muteRate"
+        android:entryValues="@array/muteRate"
+        android:key="muteRate"
+        android:defaultValue="0.05"
+        android:summary="GA: Rate of mutation"
+        android:title="Mutation Rate"/>
+
+    <ListPreference
+        android:entries="@array/crossRate"
+        android:entryValues="@array/crossRate"
+        android:key="crossRate"
+        android:defaultValue="0.5"
+        android:summary="GA: Rate of crossover between Top-performers"
+        android:title="Crossover Rate"/>
+
+    <ListPreference
+        android:entries="@array/elitism"
+        android:entryValues="@array/elitism"
+        android:key="elitism"
+        android:defaultValue="true"
+        android:summary="GA: Keep best individual between generations"
+        android:title="Elitism"/>
+
+</PreferenceScreen>

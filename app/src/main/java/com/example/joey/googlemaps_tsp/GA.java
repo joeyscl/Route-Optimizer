@@ -1,18 +1,30 @@
 package com.example.joey.googlemaps_tsp;
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
+import java.util.Map;
+
 /**
  * Created by Joey on 2015-07-19.
  */
 public class GA {
 
     /* GA parameters */
-    private static final double mutationRate = 0.03;
-    private static final double crossoverRate = 1;
-    private static final int tournamentSize = 5;
-    private static final boolean elitism = true;
+    private static float mutationRate;
+    private static float crossoverRate;
+    private static boolean elitism = true;
+
+    private static int tournamentSize = 5; // not adjustable
+
 
     // Evolves a population over one generation
-    public static Population evolvePopulation(Population pop) {
+    public static Population evolvePopulation(Population pop, SharedPreferences pref) {
+
+        mutationRate = Float.parseFloat(pref.getString("muteRate", "0.025f"));
+        crossoverRate = Float.parseFloat(pref.getString("crossRate", "0.5f"));
+        elitism = Boolean.parseBoolean(pref.getString("elitism", "true"));
+
         Population newPopulation = new Population(pop.populationSize(), false);
 
         // Keep our best individual if elitism is enabled
