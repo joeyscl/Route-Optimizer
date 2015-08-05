@@ -37,8 +37,11 @@ import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity {
 
-    private Boolean EMULATOR;
+    private Boolean EMULATOR; // To slow down app. if running on Emulator (see "emulator" in manifest)
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
+    private final int THRESHOLD = 20; // Max number of destinations on the map
+    private boolean solveInProgress = false; // Flag for GA_Task or SA_Task being in progress
+    private AsyncTask solverTask; // Reference to the GA_Task or SA_Task that is in progress
     private ArrayList<Polyline> polylines = new ArrayList();
 
     // initialize options drawer
@@ -182,7 +185,7 @@ public class MapsActivity extends FragmentActivity {
             @Override
             public void onMapClick(LatLng latLng) {
 
-                if (TourManager.numberOfDestinations() >= 12) {
+                if (TourManager.numberOfDestinations() >= THRESHOLD || solveInProgress) {
                     return;
                 }
                 // Creating a marker
@@ -216,6 +219,7 @@ public class MapsActivity extends FragmentActivity {
     }
 
     public void clearMap(View view) {
+        solverTask.cancel(true);
         mMap.clear();
         TourManager.removeAll();
     }
@@ -245,24 +249,28 @@ public class MapsActivity extends FragmentActivity {
     }
 
     public void TSP_SA(View view) {
-        if (TourManager.numberOfDestinations()==0) return;
+        if (TourManager.numberOfDestinations()==0 || solveInProgress) return;
         SA_Task task = new SA_Task();
+        solverTask = task;
         task.execute();
     }
 
     public void TSP_GA(View view) {
-        if (TourManager.numberOfDestinations()==0) return;
+        if (TourManager.numberOfDestinations()==0 || solveInProgress) return;
         GA_Task task = new GA_Task();
+        solverTask = task;
         task.execute();
     }
 
     // solves and displays TSP using GA
     class GA_Task extends AsyncTask<Void, Tour, Population> {
 
+        double bestDistanceSoFar;
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            MapsActivity.this.setProgressBarIndeterminateVisibility(true);
+            solveInProgress = true;
 
             //change color of button to indicate processing
             Button GA_button = (Button) findViewById(R.id.graphGAButton);
@@ -284,9 +292,12 @@ public class MapsActivity extends FragmentActivity {
             long lastPublishTime = time;
 
             for (int i = 0; i < generations; i++) {
+                if ( isCancelled() ) break;
+
                 time = System.currentTimeMillis();
                 pop = GA.evolvePopulation(pop, mSharedPreferences);
-                if (time - lastPublishTime > generations) {
+                bestDistanceSoFar = pop.getFittest().getDistance();
+                if (time - lastPublishTime > 200) {
                     lastPublishTime = time;
                     publishProgress(pop.getFittest());
                 }
@@ -303,12 +314,21 @@ public class MapsActivity extends FragmentActivity {
         }
 
         @Override
+        protected void onProgressUpdate(Tour... tours) {
+            super.onProgressUpdate(tours[0]);
+            Tour currentBest = tours[0];
+            graphMap(currentBest);
+            System.out.println("Current distance: " + currentBest.getDistance());
+        }
+
+        @Override
         protected void onPostExecute(Population pop) {
             super.onPostExecute(pop);
             Tour fittest = pop.getFittest();
             graphMap(fittest);
             System.out.println("GA Final distance: " + pop.getFittest().getDistance());
 
+            // Display final distance
             TextView tv1 = (TextView) findViewById(R.id.final_distance);
             int finalDistance = (int) pop.getFittest().getDistance();
             tv1.setText("FINAL DISTANCE: " + finalDistance + " km");
@@ -317,15 +337,23 @@ public class MapsActivity extends FragmentActivity {
             Button GA_button = (Button) findViewById(R.id.graphGAButton);
             GA_button.setBackgroundColor(0xb0ffffff);
 
-            MapsActivity.this.setProgressBarIndeterminateVisibility(false);
+            solveInProgress = false;
         }
 
         @Override
-        protected void onProgressUpdate(Tour... tours) {
-            super.onProgressUpdate(tours[0]);
-            Tour currentBest = tours[0];
-            graphMap(currentBest);
-            System.out.println("Current distance: " + currentBest.getDistance());
+        protected void onCancelled() {
+            super.onCancelled();
+
+            // Display final distance
+            TextView tv1 = (TextView) findViewById(R.id.final_distance);
+            int finalDistance = (int) bestDistanceSoFar;
+            tv1.setText("FINAL DISTANCE: " + finalDistance + " km");
+
+            //change color of button to indicate finish
+            Button GA_button = (Button) findViewById(R.id.graphGAButton);
+            GA_button.setBackgroundColor(0xb0ffffff);
+
+            solveInProgress = false;
         }
     }
 
@@ -334,16 +362,11 @@ public class MapsActivity extends FragmentActivity {
 
         volatile Tour current;
         volatile Tour best;
-        double temp = Double.parseDouble(mSharedPreferences.getString("temperature", "1000000000"));
-        double coolingRate = Double.parseDouble(mSharedPreferences.getString("coolingRate", "0.025f"));
-
-        long time = System.currentTimeMillis();
-        long lastPublishTime = time;
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            MapsActivity.this.setProgressBarIndeterminateVisibility(true);
+            solveInProgress = true;
 
             //change color of button to indicate processing
             Button GA_button = (Button) findViewById(R.id.graphSAButton);
@@ -354,6 +377,12 @@ public class MapsActivity extends FragmentActivity {
         protected Void doInBackground(Void... voids) {
 
             // Initialization
+            double temp = Double.parseDouble(mSharedPreferences.getString("temperature", "1000000000"));
+            double coolingRate = Double.parseDouble(mSharedPreferences.getString("coolingRate", "0.025f"));
+
+            long time = System.currentTimeMillis();
+            long lastPublishTime = time;
+            
             current = new Tour();
             current.generateIndividual();
             System.out.println("Initial distance: " + current.getDistance());
@@ -361,8 +390,9 @@ public class MapsActivity extends FragmentActivity {
             publishProgress(); // Initial graph
 
             while (temp > 1) {
+                if ( isCancelled() ) break;
 
-                long time = System.currentTimeMillis();
+                time = System.currentTimeMillis();
 
                 Tour newSolution = new Tour(current);
                 newSolution.mutateIndividual();
@@ -399,11 +429,19 @@ public class MapsActivity extends FragmentActivity {
         }
 
         @Override
+        protected void onProgressUpdate(Void... values) {
+            super.onProgressUpdate(values);
+            System.out.println("Current distance: " + best.getDistance());
+            graphMap(best);
+        }
+
+        @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             graphMap(best);
             System.out.println("SA Final distance: " + best.getDistance());
 
+            // Display final distance
             TextView tv1 = (TextView) findViewById(R.id.final_distance);
             int finalDistance = (int) best.getDistance();
             tv1.setText("FINAL DISTANCE: " + finalDistance + " km");
@@ -412,14 +450,23 @@ public class MapsActivity extends FragmentActivity {
             Button GA_button = (Button) findViewById(R.id.graphSAButton);
             GA_button.setBackgroundColor(0xb0ffffff);
 
-            MapsActivity.this.setProgressBarIndeterminateVisibility(false);
+            solveInProgress = false;
         }
 
         @Override
-        protected void onProgressUpdate(Void... values) {
-            super.onProgressUpdate(values);
-            System.out.println("Current distance: " + best.getDistance());
-            graphMap(best);
+        protected void onCancelled() {
+            super.onCancelled();
+
+            // Display final distance
+            TextView tv1 = (TextView) findViewById(R.id.final_distance);
+            int finalDistance = (int) best.getDistance();
+            tv1.setText("FINAL DISTANCE: " + finalDistance + " km");
+
+            //change color of button to indicate finish
+            Button GA_button = (Button) findViewById(R.id.graphSAButton);
+            GA_button.setBackgroundColor(0xb0ffffff);
+
+            solveInProgress = false;
         }
     }
 }

@@ -44,7 +44,7 @@
         android:entries="@array/crossRate"
         android:entryValues="@array/crossRate"
         android:key="crossRate"
-        android:defaultValue="0.5"
+        android:defaultValue="1.0"
         android:summary="GA: Rate of crossover between Top-performers"
         android:title="Crossover Rate"/>
 
