@@ -30,7 +30,7 @@
     </string-array>
     <string-array name="coolingRateValues">
         <item name="CR_0.0001">0.0001</item>
-        <item name="CR_0.0005">0.005</item>
+        <item name="CR_0.0005">0.0005</item>
         <item name="CR_0.001">0.001</item>
         <item name="CR_0.0025">0.0025</item>
         <item name="CR_0.005">0.005</item>
@@ -47,6 +47,8 @@
     </string-array>
 
     <string-array name="popSize">
+        <item name="POP_1000">1000</item>
+        <item name="POP_500">500</item>
         <item name="POP_200">200</item>
         <item name="POP_100">100</item>
         <item name="POP_50">50</item>

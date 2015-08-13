@@ -26,7 +26,7 @@ public class Destination {
         double lng1 = Math.toRadians(this.pos.longitude);
         double lat2 = Math.toRadians(destination.getLatLng().latitude);
         double lng2 = Math.toRadians(destination.getLatLng().longitude);
-        
+
         // Haversine Formula (Distance of points on sphere)
         double Radius = 6371; // radius of earth in km
 

@@ -47,7 +47,7 @@ public class GA {
                 // Crossover parents
                 child = crossover(parent1, parent2);
             } else {
-                child = parent1;
+                child = new Tour(parent1);
             }
 
             // Add child to new population

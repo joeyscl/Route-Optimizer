@@ -39,10 +39,11 @@ public class MapsActivity extends FragmentActivity {
 
     private Boolean EMULATOR; // To slow down app. if running on Emulator (see "emulator" in manifest)
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    private final int THRESHOLD = 20; // Max number of destinations on the map
+    private final int THRESHOLD = 30; // Max number of destinations on the map
     private boolean solveInProgress = false; // Flag for GA_Task or SA_Task being in progress
     private AsyncTask solverTask; // Reference to the GA_Task or SA_Task that is in progress
     private ArrayList<Polyline> polylines = new ArrayList();
+    private int publishInterval = 333; // defines publishing rate in milliseconds
 
     // initialize options drawer
     private SharedPreferences mSharedPreferences;
@@ -219,9 +220,14 @@ public class MapsActivity extends FragmentActivity {
     }
 
     public void clearMap(View view) {
-        solverTask.cancel(true);
-        mMap.clear();
-        TourManager.removeAll();
+
+        // if Async in progress, need to press twice to clear map
+        if (solveInProgress) solverTask.cancel(true);
+        else {
+            mMap.clear();
+            TourManager.removeAll();
+            System.gc();
+        }
     }
 
     public void graphMap(Tour tour) {
@@ -250,22 +256,28 @@ public class MapsActivity extends FragmentActivity {
 
     public void TSP_SA(View view) {
         if (TourManager.numberOfDestinations()==0 || solveInProgress) return;
+
         SA_Task task = new SA_Task();
         solverTask = task;
         task.execute();
+
+        System.gc();
     }
 
     public void TSP_GA(View view) {
         if (TourManager.numberOfDestinations()==0 || solveInProgress) return;
+
         GA_Task task = new GA_Task();
         solverTask = task;
         task.execute();
+
+        System.gc();
     }
 
     // solves and displays TSP using GA
     class GA_Task extends AsyncTask<Void, Tour, Population> {
 
-        double bestDistanceSoFar;
+        Tour bestTourSoFar;
 
         @Override
         protected void onPreExecute() {
@@ -275,6 +287,10 @@ public class MapsActivity extends FragmentActivity {
             //change color of button to indicate processing
             Button GA_button = (Button) findViewById(R.id.graphGAButton);
             GA_button.setBackgroundColor(0xb0FF9933);
+
+            // change text of clear button
+            Button button = (Button) findViewById(R.id.clearButton);
+            button.setText("STOP");
         }
 
         @Override
@@ -296,8 +312,8 @@ public class MapsActivity extends FragmentActivity {
 
                 time = System.currentTimeMillis();
                 pop = GA.evolvePopulation(pop, mSharedPreferences);
-                bestDistanceSoFar = pop.getFittest().getDistance();
-                if (time - lastPublishTime > 200) {
+                bestTourSoFar = new Tour(pop.getFittest());
+                if (time - lastPublishTime > publishInterval) {
                     lastPublishTime = time;
                     publishProgress(pop.getFittest());
                 }
@@ -337,6 +353,11 @@ public class MapsActivity extends FragmentActivity {
             Button GA_button = (Button) findViewById(R.id.graphGAButton);
             GA_button.setBackgroundColor(0xb0ffffff);
 
+            // change text of clear button
+            Button button = (Button) findViewById(R.id.clearButton);
+            button.setText("CLEAR");
+
+            pop = null;
             solveInProgress = false;
         }
 
@@ -346,12 +367,16 @@ public class MapsActivity extends FragmentActivity {
 
             // Display final distance
             TextView tv1 = (TextView) findViewById(R.id.final_distance);
-            int finalDistance = (int) bestDistanceSoFar;
+            int finalDistance = (int) bestTourSoFar.getDistance();
             tv1.setText("FINAL DISTANCE: " + finalDistance + " km");
 
             //change color of button to indicate finish
             Button GA_button = (Button) findViewById(R.id.graphGAButton);
             GA_button.setBackgroundColor(0xb0ffffff);
+
+            // change text of clear button
+            Button button = (Button) findViewById(R.id.clearButton);
+            button.setText("CLEAR");
 
             solveInProgress = false;
         }
@@ -371,6 +396,10 @@ public class MapsActivity extends FragmentActivity {
             //change color of button to indicate processing
             Button GA_button = (Button) findViewById(R.id.graphSAButton);
             GA_button.setBackgroundColor(0xb0FF9933);
+
+            // change text of clear button
+            Button button = (Button) findViewById(R.id.clearButton);
+            button.setText("STOP");
         }
 
         @Override
@@ -410,7 +439,7 @@ public class MapsActivity extends FragmentActivity {
                     best = current;
                 }
 
-                if (time - lastPublishTime > 200) {
+                if (time - lastPublishTime > publishInterval) {
                     lastPublishTime = time;
                     publishProgress();
                 }
@@ -438,6 +467,7 @@ public class MapsActivity extends FragmentActivity {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+
             graphMap(best);
             System.out.println("SA Final distance: " + best.getDistance());
 
@@ -450,12 +480,19 @@ public class MapsActivity extends FragmentActivity {
             Button GA_button = (Button) findViewById(R.id.graphSAButton);
             GA_button.setBackgroundColor(0xb0ffffff);
 
+            // change text of clear button
+            Button button = (Button) findViewById(R.id.clearButton);
+            button.setText("CLEAR");
+
             solveInProgress = false;
         }
 
         @Override
         protected void onCancelled() {
             super.onCancelled();
+
+            graphMap(best);
+            System.out.println("SA onCancel distance: " + best.getDistance());
 
             // Display final distance
             TextView tv1 = (TextView) findViewById(R.id.final_distance);
@@ -465,6 +502,10 @@ public class MapsActivity extends FragmentActivity {
             //change color of button to indicate finish
             Button GA_button = (Button) findViewById(R.id.graphSAButton);
             GA_button.setBackgroundColor(0xb0ffffff);
+
+            // change text of clear button
+            Button button = (Button) findViewById(R.id.clearButton);
+            button.setText("CLEAR");
 
             solveInProgress = false;
         }

@@ -13,7 +13,7 @@
         android:entryValues="@array/coolingRateValues"
         android:key="coolingRate"
         android:defaultValue="0.001"
-        android:summary="SA: Rate of cooling of system"
+        android:summary="SA: Cooling rate of system"
         android:title="Cooling Rate"/>
 
     <ListPreference
@@ -29,7 +29,7 @@
         android:entryValues="@array/popSize"
         android:key="popSize"
         android:defaultValue="50"
-        android:summary="GA: Population size"
+        android:summary="GA: Starting number of individual tours"
         android:title="Population Size"/>
 
     <ListPreference
@@ -37,7 +37,7 @@
         android:entryValues="@array/muteRate"
         android:key="muteRate"
         android:defaultValue="0.05"
-        android:summary="GA: Rate of mutation"
+        android:summary="GA: Probability of mutation of individual"
         android:title="Mutation Rate"/>
 
     <ListPreference
